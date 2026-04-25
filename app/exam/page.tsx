@@ -190,6 +190,7 @@ export default function ExamPage() {
     return (
       <>
         <ExamQuestionUI
+          key={question.id}
           question={question}
           questionNumber={currentIndex + 1}
           totalQuestions={questions.length}

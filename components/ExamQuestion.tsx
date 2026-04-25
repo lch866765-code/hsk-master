@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ExamQuestion } from '@/lib/types';
 import { gradeAnswer } from '@/lib/exam';
 import { speakChinese, isTTSSupported } from '@/lib/tts';
@@ -33,10 +33,24 @@ export default function ExamQuestionUI({
   const [textInput, setTextInput] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [showHint, setShowHint] = useState(false);
   const [ttsSupported] = useState(() => isTTSSupported());
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const progress = ((questionNumber - 1) / totalQuestions) * 100;
+
+  // Auto-advance after MC selection (2 seconds); runs only after user picks an option
+  useEffect(() => {
+    if (selectedIndex === null) return;
+    const timer = setTimeout(() => onAnswer(isCorrect), 2000);
+    return () => clearTimeout(timer);
+  }, [selectedIndex, isCorrect, onAnswer]);
+
+  // Auto-focus dictation input when a new dictation question loads
+  useEffect(() => {
+    if (question.mode === 'dictation') {
+      inputRef.current?.focus();
+    }
+  }, [question.mode]);
 
   const handleMCSelect = (index: number) => {
     if (submitted) return;
@@ -44,7 +58,6 @@ export default function ExamQuestionUI({
     const correct = gradeAnswer(question, String(index));
     setIsCorrect(correct);
     setSubmitted(true);
-    setTimeout(() => onAnswer(correct), 1500);
   };
 
   const handleDictationSubmit = () => {
@@ -100,21 +113,9 @@ export default function ExamQuestionUI({
             )}
           </>
         ) : (
-          <>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
-              {question.word.meaning_ko}
-            </div>
-            {showHint ? (
-              <div className="text-center text-indigo-500 text-lg">{question.word.pinyin}</div>
-            ) : (
-              <button
-                onClick={() => setShowHint(true)}
-                className="mx-auto block text-xs text-gray-400 underline"
-              >
-                힌트 보기 (병음)
-              </button>
-            )}
-          </>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
+            {question.word.meaning_ko}
+          </div>
         )}
 
         {/* Feedback after submit */}
@@ -153,17 +154,34 @@ export default function ExamQuestionUI({
         </div>
       )}
 
+      {/* MC Next button after selection */}
+      {question.mode === 'mc' && submitted && (
+        <button
+          onClick={handleNext}
+          className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-base hover:bg-indigo-700 transition-colors mb-4"
+        >
+          다음 →
+        </button>
+      )}
+
       {/* Dictation Input */}
       {question.mode === 'dictation' && (
         <div className="mb-4">
           <input
+            ref={inputRef}
             type="text"
+            inputMode="text"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !submitted && handleDictationSubmit()}
-            disabled={submitted}
-            placeholder="한자 또는 병음 입력..."
-            className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-lg focus:border-indigo-500 outline-none chinese-text"
+            onKeyDown={(e) => { if (e.key === 'Enter') handleDictationSubmit(); }}
+            readOnly={submitted}
+            placeholder="한자를 입력하세요"
+            className="w-full px-4 py-3 text-2xl text-center border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 chinese-text"
+            aria-label="한자 입력"
           />
           {!submitted && (
             <button
