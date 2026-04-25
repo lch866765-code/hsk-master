@@ -33,11 +33,14 @@ export default function StatsPage() {
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const [mounted, setMounted] = useState(false);
 
+  const levelsKey = settings.enabledLevels.join(',');
+
   useEffect(() => {
     setMounted(true);
     loadAllWords(settings.enabledLevels).then(setAllWords);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // levelsKey is a stable dep representing settings.enabledLevels
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levelsKey]);
 
   if (!mounted) return null;
 

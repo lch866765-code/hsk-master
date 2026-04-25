@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Flashcard from '@/components/Flashcard';
 import RatingButtons from '@/components/RatingButtons';
@@ -51,14 +51,19 @@ export default function StudyPage() {
   const [sessionComplete, setSessionComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const levelsKey = settings.enabledLevels.join(',');
+  const initializeCardsRef = useRef(initializeCards);
+  initializeCardsRef.current = initializeCards;
+
   useEffect(() => {
     setMounted(true);
     loadAllWords(settings.enabledLevels).then((words) => {
       setAllWords(words);
-      initializeCards(words);
+      initializeCardsRef.current(words);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // levelsKey is a stable dep representing settings.enabledLevels
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levelsKey]);
 
   const buildStudyQueue = useCallback(() => {
     if (allWords.length === 0) return;

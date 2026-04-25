@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import ProgressBar from '@/components/ProgressBar';
@@ -35,16 +35,22 @@ export default function HomePage() {
     useHSKStore();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const [mounted, setMounted] = useState(false);
+  const levelsKey = settings.enabledLevels.join(',');
+  const initializeCardsRef = useRef(initializeCards);
+  const resetTodayCountsRef = useRef(resetTodayCounts);
+  initializeCardsRef.current = initializeCards;
+  resetTodayCountsRef.current = resetTodayCounts;
 
   useEffect(() => {
     setMounted(true);
-    resetTodayCounts();
+    resetTodayCountsRef.current();
     loadAllWords(settings.enabledLevels).then((words) => {
       setAllWords(words);
-      initializeCards(words);
+      initializeCardsRef.current(words);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.enabledLevels.join(',')]);
+  // levelsKey is a stable dep representing settings.enabledLevels
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levelsKey]);
 
   if (!mounted) return null;
 

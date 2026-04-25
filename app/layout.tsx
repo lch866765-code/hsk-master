@@ -43,7 +43,8 @@ export default function RootLayout({
               const stored = localStorage.getItem('hsk-master-state');
               if (stored) {
                 const parsed = JSON.parse(stored);
-                if (parsed.state && parsed.state.settings && parsed.state.settings.darkMode) {
+                if (parsed && parsed.state && parsed.state.settings &&
+                    parsed.state.settings.darkMode === true) {
                   document.documentElement.classList.add('dark');
                 }
               }

@@ -1,4 +1,4 @@
-import type { CardState, Rating } from './types';
+import type { CardState, Rating, IntervalPreview } from './types';
 
 const MIN_EASE_FACTOR = 1.3;
 
@@ -107,11 +107,4 @@ export function getIntervalPreview(card: CardState): IntervalPreview {
     good: formatInterval(goodCard.interval),
     easy: formatInterval(easyCard.interval),
   };
-}
-
-interface IntervalPreview {
-  again: string;
-  hard: string;
-  good: string;
-  easy: string;
 }
