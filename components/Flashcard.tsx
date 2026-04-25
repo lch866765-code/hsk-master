@@ -46,7 +46,7 @@ export default function Flashcard({ word, autoPlay = true, onFlip }: FlashcardPr
   );
 
   return (
-    <div className="flip-card w-full h-72 cursor-pointer" onClick={handleFlip}>
+    <div className="flip-card w-full h-[380px] sm:h-[420px] cursor-pointer" onClick={handleFlip}>
       <div className={`flip-card-inner w-full h-full ${isFlipped ? 'flip-card-inner-flipped' : ''}`}>
         {/* Front */}
         <div className="flip-card-face bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-700 relative">
@@ -72,7 +72,7 @@ export default function Flashcard({ word, autoPlay = true, onFlip }: FlashcardPr
         </div>
 
         {/* Back */}
-        <div className="flip-card-face flip-card-back-face bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-700 relative">
+        <div className="flip-card-face flip-card-back-face bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center border border-gray-100 dark:border-gray-700 relative overflow-y-auto">
           <div className="absolute top-3 right-3">
             {posBadge}
           </div>
