@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import NavBar from '@/components/NavBar';
 import { useHSKStore } from '@/lib/store';
 import { useMounted } from '@/lib/useMounted';
+import { POS_VALUES, POS_LABELS_KO } from '@/lib/pos';
+import type { PartOfSpeech } from '@/lib/types';
 
 export default function SettingsPage() {
   const { settings, updateSettings, resetProgress, exportData, importData } = useHSKStore();
@@ -31,6 +33,15 @@ export default function SettingsPage() {
       : ([...current, level].sort() as (3 | 4 | 5 | 6)[]);
     if (updated.length === 0) return;
     updateSettings({ enabledLevels: updated });
+  };
+
+  const handlePosToggle = (pos: PartOfSpeech) => {
+    const current = settings.selectedPos;
+    const updated = current.includes(pos)
+      ? current.filter((p) => p !== pos)
+      : [...current, pos];
+    if (updated.length === 0) return;
+    updateSettings({ selectedPos: updated });
   };
 
   const handleExport = () => {
@@ -130,6 +141,42 @@ export default function SettingsPage() {
             >
               HSK {level}
             </button>
+          ))}
+        </div>
+      </section>
+
+      {/* POS Filter */}
+      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4 border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold">품사별 학습</h2>
+          <button
+            className="text-xs text-indigo-600 dark:text-indigo-400"
+            onClick={() =>
+              updateSettings({
+                selectedPos:
+                  settings.selectedPos.length === POS_VALUES.length
+                    ? [POS_VALUES[0]]
+                    : [...POS_VALUES],
+              })
+            }
+          >
+            {settings.selectedPos.length === POS_VALUES.length ? '전체 해제' : '전체 선택'}
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {POS_VALUES.map((pos) => (
+            <label
+              key={pos}
+              className="flex items-center gap-2 p-2 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            >
+              <input
+                type="checkbox"
+                checked={settings.selectedPos.includes(pos)}
+                onChange={() => handlePosToggle(pos)}
+                className="accent-indigo-600 w-4 h-4"
+              />
+              <span className="text-sm">{POS_LABELS_KO[pos]}</span>
+            </label>
           ))}
         </div>
       </section>

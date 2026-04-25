@@ -68,19 +68,23 @@ export default function StudyPage() {
     if (allWords.length === 0) return;
 
     const now = new Date();
+    // Filter words by selected POS
+    const filteredWords = allWords.filter((w) =>
+      settings.selectedPos.includes(w.pos)
+    );
 
-    const dueReviews = allWords.filter((w) => {
+    const dueReviews = filteredWords.filter((w) => {
       const card = cards[w.id];
       return card && card.state === 'review' && new Date(card.dueDate) <= now;
     });
 
-    const learningCards = allWords.filter((w) => {
+    const learningCards = filteredWords.filter((w) => {
       const card = cards[w.id];
       return card && card.state === 'learning' && new Date(card.dueDate) <= now;
     });
 
     const remainingNew = Math.max(0, settings.dailyNewCards - todayNewCount);
-    const newCards = allWords
+    const newCards = filteredWords
       .filter((w) => {
         const card = cards[w.id];
         return card && card.state === 'new';
@@ -96,7 +100,7 @@ export default function StudyPage() {
       setCurrentIndex(0);
       setShowRating(false);
     }
-  }, [allWords, cards, settings.dailyNewCards, todayNewCount]);
+  }, [allWords, cards, settings.dailyNewCards, settings.selectedPos, todayNewCount]);
 
   useEffect(() => {
     if (allWords.length > 0) {

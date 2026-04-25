@@ -5,7 +5,14 @@ import NavBar from '@/components/NavBar';
 import { useHSKStore } from '@/lib/store';
 import { isDueToday } from '@/lib/srs';
 import { useMounted } from '@/lib/useMounted';
-import type { VocabWord } from '@/lib/types';
+import { POS_VALUES, POS_LABELS_KO } from '@/lib/pos';
+import type { VocabWord, ExamMode } from '@/lib/types';
+
+const MODE_LABELS: Record<ExamMode, string> = {
+  mc: '객관식',
+  dictation: '받아쓰기',
+  mixed: '혼합',
+};
 
 async function loadAllWords(levels: (3 | 4 | 5 | 6)[]): Promise<VocabWord[]> {
   const results: VocabWord[] = [];
@@ -30,7 +37,7 @@ async function loadAllWords(levels: (3 | 4 | 5 | 6)[]): Promise<VocabWord[]> {
 }
 
 export default function StatsPage() {
-  const { cards, sessions, settings } = useHSKStore();
+  const { cards, sessions, settings, examHistory } = useHSKStore();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
   const mounted = useMounted();
 
@@ -76,6 +83,15 @@ export default function StatsPage() {
     return { level, total: levelWords.length, learned };
   });
 
+  // POS breakdown (for all loaded words)
+  const posStats = POS_VALUES.map((pos) => {
+    const posWords = allWords.filter((w) => w.pos === pos);
+    const learned = posWords.filter((w) => (cards[w.id]?.repetitions ?? 0) > 0).length;
+    return { pos, total: posWords.length, learned };
+  }).filter(({ total }) => total > 0);
+
+  const recentExams = (examHistory ?? []).slice(0, 5);
+
   return (
     <main className="flex-1 p-4 pb-20">
       <header className="py-4 mb-4">
@@ -105,7 +121,8 @@ export default function StatsPage() {
         </div>
       </div>
 
-      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 border border-gray-100 dark:border-gray-700">
+      {/* Level stats */}
+      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4 border border-gray-100 dark:border-gray-700">
         <h2 className="text-base font-semibold mb-3">레벨별 통계</h2>
         <div className="space-y-3">
           {levelStats.map(({ level, total, learned }) => (
@@ -151,6 +168,62 @@ export default function StatsPage() {
           ))}
         </div>
       </section>
+
+      {/* POS breakdown */}
+      {posStats.length > 0 && (
+        <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4 border border-gray-100 dark:border-gray-700">
+          <h2 className="text-base font-semibold mb-3">품사별 학습 단어 수</h2>
+          <div className="flex flex-wrap gap-2">
+            {posStats.map(({ pos, total, learned }) => (
+              <div
+                key={pos}
+                className="text-xs px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+              >
+                <span className="font-medium text-gray-700 dark:text-gray-300">{POS_LABELS_KO[pos]}</span>
+                <span className="ml-1 text-indigo-600 dark:text-indigo-400 font-bold">{learned}</span>
+                <span className="text-gray-400">/{total}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Exam history */}
+      {recentExams.length > 0 && (
+        <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4 border border-gray-100 dark:border-gray-700">
+          <h2 className="text-base font-semibold mb-3">모의시험 기록</h2>
+          <div className="space-y-2">
+            {recentExams.map((exam) => {
+              const score = Math.round((exam.correctCount / exam.totalQuestions) * 100);
+              const date = new Date(exam.date).toLocaleDateString('ko-KR', {
+                month: '2-digit',
+                day: '2-digit',
+              });
+              return (
+                <div
+                  key={exam.id}
+                  className="flex items-center justify-between text-sm py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                >
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {date} · {MODE_LABELS[exam.mode]} · {exam.totalQuestions}문제
+                  </span>
+                  <span
+                    className={`font-bold ${
+                      score >= 80
+                        ? 'text-green-600 dark:text-green-400'
+                        : score >= 60
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {score}점 ({exam.correctCount}/{exam.totalQuestions})
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <NavBar />
     </main>
