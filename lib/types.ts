@@ -1,3 +1,7 @@
+import type { PartOfSpeech } from './pos';
+
+export type { PartOfSpeech };
+
 export interface VocabWord {
   id: string;
   hanzi: string;
@@ -6,6 +10,7 @@ export interface VocabWord {
   example_zh: string;
   example_ko: string;
   level: 3 | 4 | 5 | 6;
+  pos: PartOfSpeech;
 }
 
 export interface CardState {
@@ -32,6 +37,7 @@ export interface AppSettings {
   dailyReviews: number;
   enabledLevels: (3 | 4 | 5 | 6)[];
   darkMode: boolean;
+  selectedPos: PartOfSpeech[];
 }
 
 export interface IntervalPreview {
@@ -40,3 +46,28 @@ export interface IntervalPreview {
   good: string;
   easy: string;
 }
+
+export type ExamMode = 'mc' | 'dictation' | 'mixed';
+export type ExamSourcePool = 'studied' | 'all';
+
+export interface ExamQuestion {
+  id: string;
+  word: VocabWord;
+  mode: 'mc' | 'dictation';
+  /** For MC: the 4 options (one correct, three distractors) */
+  options?: string[];
+  /** For MC: index of correct option in options array */
+  correctOptionIndex?: number;
+}
+
+export interface ExamResult {
+  id: string;
+  date: string;
+  mode: ExamMode;
+  totalQuestions: number;
+  correctCount: number;
+  elapsedSeconds: number;
+  wrongWordIds: string[];
+  levels: (3 | 4 | 5 | 6)[];
+}
+

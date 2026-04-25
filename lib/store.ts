@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { CardState, AppSettings, StudySession, VocabWord } from './types';
+import type { CardState, AppSettings, StudySession, VocabWord, ExamResult } from './types';
 import { createInitialCardState } from './srs';
+import { POS_VALUES } from './pos';
 
 interface HSKStore {
   cards: Record<string, CardState>;
@@ -10,6 +11,7 @@ interface HSKStore {
   todayNewCount: number;
   todayReviewCount: number;
   lastStudyDate: string;
+  examHistory: ExamResult[];
 
   initializeCards: (words: VocabWord[]) => void;
   updateCard: (card: CardState) => void;
@@ -21,6 +23,7 @@ interface HSKStore {
   resetProgress: () => void;
   exportData: () => string;
   importData: (json: string) => boolean;
+  addExamResult: (result: ExamResult) => void;
 }
 
 const defaultSettings: AppSettings = {
@@ -28,6 +31,7 @@ const defaultSettings: AppSettings = {
   dailyReviews: 200,
   enabledLevels: [3, 4],
   darkMode: false,
+  selectedPos: [...POS_VALUES],
 };
 
 export const useHSKStore = create<HSKStore>()(
@@ -39,6 +43,7 @@ export const useHSKStore = create<HSKStore>()(
       todayNewCount: 0,
       todayReviewCount: 0,
       lastStudyDate: '',
+      examHistory: [],
 
       initializeCards: (words: VocabWord[]) => {
         const { cards } = get();
@@ -126,6 +131,7 @@ export const useHSKStore = create<HSKStore>()(
             todayNewCount: state.todayNewCount,
             todayReviewCount: state.todayReviewCount,
             lastStudyDate: state.lastStudyDate,
+            examHistory: state.examHistory,
           },
           null,
           2
@@ -138,20 +144,44 @@ export const useHSKStore = create<HSKStore>()(
           set({
             cards: data.cards ?? {},
             sessions: data.sessions ?? [],
-            settings: { ...defaultSettings, ...(data.settings ?? {}) },
+            settings: {
+              ...defaultSettings,
+              ...(data.settings ?? {}),
+              selectedPos: data.settings?.selectedPos ?? [...POS_VALUES],
+            },
             todayNewCount: data.todayNewCount ?? 0,
             todayReviewCount: data.todayReviewCount ?? 0,
             lastStudyDate: data.lastStudyDate ?? '',
+            examHistory: data.examHistory ?? [],
           });
           return true;
         } catch {
           return false;
         }
       },
+
+      addExamResult: (result: ExamResult) => {
+        set((state) => ({
+          examHistory: [result, ...state.examHistory].slice(0, 20),
+        }));
+      },
     }),
     {
       name: 'hsk-master-state',
       storage: createJSONStorage(() => localStorage),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<HSKStore>;
+        return {
+          ...currentState,
+          ...persisted,
+          settings: {
+            ...defaultSettings,
+            ...(persisted.settings ?? {}),
+            selectedPos: persisted.settings?.selectedPos ?? [...POS_VALUES],
+          },
+          examHistory: persisted.examHistory ?? [],
+        };
+      },
     }
   )
 );
