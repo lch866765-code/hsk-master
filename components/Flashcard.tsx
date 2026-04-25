@@ -100,4 +100,3 @@ export default function Flashcard({ word, autoPlay = true, onFlip }: FlashcardPr
     </div>
   );
 }
-
