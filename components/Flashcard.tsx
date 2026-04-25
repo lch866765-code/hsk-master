@@ -12,13 +12,13 @@ interface FlashcardProps {
 
 export default function Flashcard({ word, autoPlay = true, onFlip }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [ttsSupported, setTtsSupported] = useState(false);
+  // Lazy initializer runs only on mount (client-side), avoiding SSR mismatch
+  const [ttsSupported] = useState(() => isTTSSupported());
 
+  // Auto-speak when word changes; parent passes key={word.id} so component remounts
+  // which resets isFlipped to false without needing a setState call in the effect.
   useEffect(() => {
-    setIsFlipped(false);
-    setTtsSupported(isTTSSupported());
-
-    if (autoPlay && isTTSSupported()) {
+    if (autoPlay) {
       const timer = setTimeout(() => {
         speakChinese(word.hanzi);
       }, 300);

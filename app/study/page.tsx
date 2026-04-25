@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Flashcard from '@/components/Flashcard';
 import RatingButtons from '@/components/RatingButtons';
 import NavBar from '@/components/NavBar';
 import { useHSKStore } from '@/lib/store';
-import { calculateNextInterval, isDueToday, getIntervalPreview } from '@/lib/srs';
+import { calculateNextInterval, getIntervalPreview } from '@/lib/srs';
+import { useMounted } from '@/lib/useMounted';
 import type { VocabWord, Rating } from '@/lib/types';
 
 async function loadAllWords(levels: (3 | 4 | 5 | 6)[]): Promise<VocabWord[]> {
@@ -49,19 +50,17 @@ export default function StudyPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showRating, setShowRating] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
   const levelsKey = settings.enabledLevels.join(',');
-  const initializeCardsRef = useRef(initializeCards);
-  initializeCardsRef.current = initializeCards;
 
   useEffect(() => {
-    setMounted(true);
     loadAllWords(settings.enabledLevels).then((words) => {
       setAllWords(words);
-      initializeCardsRef.current(words);
+      initializeCards(words);
     });
-  // levelsKey is a stable dep representing settings.enabledLevels
+  // Store action (initializeCards) is a stable Zustand ref.
+  // levelsKey represents settings.enabledLevels as a serialized dep.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelsKey]);
 
@@ -101,6 +100,7 @@ export default function StudyPage() {
 
   useEffect(() => {
     if (allWords.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       buildStudyQueue();
     }
   }, [allWords, buildStudyQueue]);

@@ -3,17 +3,14 @@
 import { useEffect, useState, useRef } from 'react';
 import NavBar from '@/components/NavBar';
 import { useHSKStore } from '@/lib/store';
+import { useMounted } from '@/lib/useMounted';
 
 export default function SettingsPage() {
   const { settings, updateSettings, resetProgress, exportData, importData } = useHSKStore();
-  const [mounted, setMounted] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [importStatus, setImportStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   useEffect(() => {
     if (mounted) {

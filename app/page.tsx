@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
 import ProgressBar from '@/components/ProgressBar';
 import { useHSKStore } from '@/lib/store';
 import { isDueToday } from '@/lib/srs';
+import { useMounted } from '@/lib/useMounted';
 import type { VocabWord } from '@/lib/types';
 
 async function loadAllWords(levels: (3 | 4 | 5 | 6)[]): Promise<VocabWord[]> {
@@ -34,21 +35,17 @@ export default function HomePage() {
   const { cards, settings, todayNewCount, todayReviewCount, initializeCards, resetTodayCounts } =
     useHSKStore();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const levelsKey = settings.enabledLevels.join(',');
-  const initializeCardsRef = useRef(initializeCards);
-  const resetTodayCountsRef = useRef(resetTodayCounts);
-  initializeCardsRef.current = initializeCards;
-  resetTodayCountsRef.current = resetTodayCounts;
 
   useEffect(() => {
-    setMounted(true);
-    resetTodayCountsRef.current();
+    resetTodayCounts();
     loadAllWords(settings.enabledLevels).then((words) => {
       setAllWords(words);
-      initializeCardsRef.current(words);
+      initializeCards(words);
     });
-  // levelsKey is a stable dep representing settings.enabledLevels
+  // Store actions (resetTodayCounts, initializeCards) are stable Zustand refs;
+  // levelsKey represents settings.enabledLevels as a serialized dep.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelsKey]);
 

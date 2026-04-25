@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import NavBar from '@/components/NavBar';
 import { useHSKStore } from '@/lib/store';
 import { isDueToday } from '@/lib/srs';
+import { useMounted } from '@/lib/useMounted';
 import type { VocabWord } from '@/lib/types';
 
 async function loadAllWords(levels: (3 | 4 | 5 | 6)[]): Promise<VocabWord[]> {
@@ -31,12 +32,11 @@ async function loadAllWords(levels: (3 | 4 | 5 | 6)[]): Promise<VocabWord[]> {
 export default function StatsPage() {
   const { cards, sessions, settings } = useHSKStore();
   const [allWords, setAllWords] = useState<VocabWord[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
   const levelsKey = settings.enabledLevels.join(',');
 
   useEffect(() => {
-    setMounted(true);
     loadAllWords(settings.enabledLevels).then(setAllWords);
   // levelsKey is a stable dep representing settings.enabledLevels
   // eslint-disable-next-line react-hooks/exhaustive-deps

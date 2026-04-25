@@ -54,9 +54,7 @@ export function calculateNextInterval(card: CardState, rating: Rating): CardStat
     dueDate.setHours(0, 0, 0, 0);
   }
 
-  const newState: CardState['state'] =
-    interval >= 1 && repetitions > 0 ? 'review' :
-    rating === 'again' ? 'learning' : 'learning';
+  const newState: CardState['state'] = interval >= 1 && repetitions > 0 ? 'review' : 'learning';
 
   return {
     ...card,
