@@ -198,16 +198,19 @@ export default function StudyPage() {
       <div className="flex-1 flex flex-col justify-center gap-4">
         <Flashcard key={currentWord.id} word={currentWord} autoPlay={true} onFlip={handleCardFlip} />
 
-        {showRating ? (
-          <RatingButtons onRate={handleRate} intervalPreview={intervalPreview} />
-        ) : (
-          <button
-            onClick={handleCardFlip}
-            className="w-full py-4 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-2xl font-medium border border-gray-200 dark:border-gray-700"
-          >
-            카드 뒤집기 👆
-          </button>
-        )}
+        {/* Fixed-height area so layout doesn't shift when contents change */}
+        <div className="min-h-[160px] sm:min-h-[180px]">
+          {showRating ? (
+            <RatingButtons onRate={handleRate} intervalPreview={intervalPreview} />
+          ) : (
+            <button
+              onClick={handleCardFlip}
+              className="w-full py-4 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-2xl font-medium border border-gray-200 dark:border-gray-700"
+            >
+              카드 뒤집기 👆
+            </button>
+          )}
+        </div>
       </div>
 
       <NavBar />
